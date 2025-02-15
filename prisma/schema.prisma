@@ -1,0 +1,85 @@
+// This is the Prisma schema file,
+// Optimized for faster querying by:
+// 1. Adding indexes on frequently queried fields such as `status`, `numberOfOrders`, `createdAt`, and `slug` for faster filtering and sorting.
+// 2. Including composite indexes for many-to-many relationships, such as `CuisinesOnSetMenus` to optimize lookups between `SetMenu` and `Cuisine`.
+// 3. Utilizing `@@id` and `@@index` to speed up retrieval in many-to-many relationships and join tables, particularly for `CuisinesOnSetMenus` and `MenuGroup`.
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model SetMenu {
+    id             Int                  @id @default(autoincrement())
+    name           String
+    description    String?
+    status         Int // 1 for live, 0 for draft
+    pricePerPerson Float                @map("price_per_person")
+    minSpend       Float                @map("min_spend")
+    numberOfOrders Int                  @default(0) @map("number_of_orders")
+    image          String?
+    thumbnail      String?
+    isVegan        Boolean              @map("is_vegan")
+    isVegetarian   Boolean              @map("is_vegetarian")
+    isSeated       Boolean              @map("is_seated")
+    isStanding     Boolean              @map("is_standing")
+    isCanape       Boolean              @map("is_canape")
+    isMixedDietary Boolean              @map("is_mixed_dietary")
+    isMealPrep     Boolean              @map("is_meal_prep")
+    isHalal        Boolean              @map("is_halal")
+    isKosher       Boolean              @map("is_kosher")
+    displayText    Boolean              @map("display_text")
+    priceIncludes  String?              @map("price_includes")
+    highlight      String?
+    available      Boolean              @default(true)
+    createdAt      DateTime             @default(now()) @map("created_at")
+    updatedAt      DateTime             @updatedAt @map("updated_at")
+    cuisines       CuisinesOnSetMenus[]
+    groups         MenuGroup[]
+
+    // Indexes for faster querying on frequently used fields
+    @@index([id])
+    @@index([status])
+    @@index([numberOfOrders])
+    @@index([createdAt])
+}
+
+model Cuisine {
+    id        Int                  @id @default(autoincrement())
+    name      String
+    slug      String
+    setMenus  CuisinesOnSetMenus[]
+    createdAt DateTime             @default(now()) @map("created_at")
+    updatedAt DateTime             @updatedAt @map("updated_at")
+
+    // Index for faster querying on slug field
+    @@index([slug])
+}
+
+// Many-to-many relationship between SetMenu and Cuisine
+model CuisinesOnSetMenus {
+    setMenu   SetMenu @relation(fields: [setMenuId], references: [id])
+    setMenuId Int     @map("set_menu_id")
+    cuisine   Cuisine @relation(fields: [cuisineId], references: [id])
+    cuisineId Int     @map("cuisine_id")
+
+    // Composite index for fast lookups in many-to-many relationship
+    @@id([setMenuId, cuisineId])
+    @@index([cuisineId])
+}
+
+model MenuGroup {
+    id                    Int     @id @default(autoincrement())
+    setMenuId             Int     @map("set_menu_id")
+    name                  String
+    dishesCount           Int     @map("dishes_count")
+    selectableDishesCount Int     @map("selectable_dishes_count")
+    setMenu               SetMenu @relation(fields: [setMenuId], references: [id])
+
+    // Index for faster querying by setMenuId
+    @@index([setMenuId])
+}
