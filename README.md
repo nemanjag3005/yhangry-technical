@@ -20,7 +20,7 @@
 
 - ./start-database.sh
 
-- npx prisma db push
+- npm run db:push
 
 4. Run the data harvester:
 
@@ -71,6 +71,7 @@ The application will be available at http://localhost:3000
 ## Tech Stack
 
 #### Frontend/Backend:
+
 - Next.js – React framework for building fast, SEO-friendly, full-stack applications with server-side rendering and static site generation.
 - tRPC – Type-safe API library that enables automatic TypeScript inference between the client and server without the need for REST.
 - Prisma – Type-safe ORM for interacting with databases.
